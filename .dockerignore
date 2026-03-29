@@ -1,0 +1,13 @@
+.git
+.gitignore
+.env
+.env.local
+.idea
+.vscode
+vendor
+runtime/cache/*
+runtime/container/*
+runtime/logs/*
+storage/tmp/*
+docs
+examples
