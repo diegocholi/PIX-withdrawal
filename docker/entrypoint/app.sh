@@ -6,6 +6,7 @@ APP_RUNTIME_GID="${APP_RUNTIME_GID:-0}"
 APP_RUNTIME_UID="${APP_RUNTIME_UID:-0}"
 APP_TIMEZONE="${APP_TIMEZONE:-UTC}"
 PREPARE_RUNTIME_SCRIPT="${APP_DIR}/prepare-runtime.sh"
+COMPOSER_INSTALL_LOCK_DIR="${APP_DIR}/runtime/.composer-install.lock"
 
 assert_command_exists() {
     command_name="$1"
@@ -47,6 +48,23 @@ ensure_application_dependencies() {
         exit 1
     fi
 
+    while ! mkdir "$COMPOSER_INSTALL_LOCK_DIR" 2>/dev/null; do
+        if [ -f "$autoload_file_path" ]; then
+            return
+        fi
+
+        echo "Waiting for application dependencies installation lock"
+        sleep 1
+    done
+
+    trap 'rmdir "$COMPOSER_INSTALL_LOCK_DIR" 2>/dev/null || true' EXIT INT TERM
+
+    if [ -f "$autoload_file_path" ]; then
+        rmdir "$COMPOSER_INSTALL_LOCK_DIR" 2>/dev/null || true
+        trap - EXIT INT TERM
+        return
+    fi
+
     echo "Installing application dependencies"
 
     composer install \
@@ -54,6 +72,9 @@ ensure_application_dependencies() {
         --no-interaction \
         --prefer-dist \
         --optimize-autoloader
+
+    rmdir "$COMPOSER_INSTALL_LOCK_DIR" 2>/dev/null || true
+    trap - EXIT INT TERM
 }
 
 configure_timezone() {

@@ -36,9 +36,11 @@ x-app-base: &app-base
       condition: service_healthy
   volumes:
     - ./:/opt/apps/pix-withdrawal
+    - vendor-data:/opt/apps/pix-withdrawal/vendor
     - composer-cache:/tmp/composer
   networks:
     - pix-withdrawal
+    - pix-withdrawal-public
   healthcheck:
     test:
       - CMD
@@ -57,9 +59,6 @@ services:
     command: ["./docker/entrypoint/http.sh"]
     ports:
       - "9501:9501"
-    networks:
-      - pix-withdrawal
-      - pix-withdrawal-public
 
   app-cli:
     <<: *app-base
@@ -190,6 +189,9 @@ networks:
 volumes:
   composer-cache:
     name: pix-withdrawal-composer-cache
+    driver: local
+  vendor-data:
+    name: pix-withdrawal-vendor-data
     driver: local
   mysql-data:
     name: pix-withdrawal-mysql-data
