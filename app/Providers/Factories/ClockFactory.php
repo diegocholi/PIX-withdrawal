@@ -13,8 +13,7 @@ final readonly class ClockFactory
 {
     public function __construct(
         private ProviderConfigProvider $providerConfigProvider,
-        private SystemClockFactory $systemClockFactory,
-        private TestClockFactory $testClockFactory,
+        private \DateTimeZone $dateTimeZone,
     ) {
     }
 
@@ -23,8 +22,8 @@ final readonly class ClockFactory
         $driver = $this->providerConfigProvider->clockDriver();
 
         return match ($driver) {
-            'system' => $this->systemClockFactory->create(),
-            'test' => $this->testClockFactory->create(),
+            'system' => new SystemClock($this->dateTimeZone),
+            'test' => new TestClock(null, $this->dateTimeZone),
             default => throw new \InvalidArgumentException(sprintf('Unsupported providers.clock.driver "%s".', $driver)),
         };
     }

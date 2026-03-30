@@ -60,20 +60,25 @@ final readonly class KafkaProducerFactory
         $conf->set('bootstrap.servers', implode(',', $this->kafkaConfig->brokers()));
 
         foreach ($configuration as $key => $value) {
-            if (! is_scalar($value) && $value !== null) {
-                throw new \InvalidArgumentException(sprintf(
-                    'Kafka producer option "%s" must be scalar or null.',
-                    $key,
-                ));
-            }
-
-            if ($value === null) {
-                continue;
-            }
-
-            $conf->set($key, trim((string) $value));
+            $this->applyOptionalScalarSetting($conf, $key, $value);
         }
 
         return $conf;
+    }
+
+    private function applyOptionalScalarSetting(Conf $conf, string $key, mixed $value): void
+    {
+        if (! is_scalar($value) && $value !== null) {
+            throw new \InvalidArgumentException(sprintf(
+                'Kafka producer option "%s" must be scalar or null.',
+                $key,
+            ));
+        }
+
+        if ($value === null) {
+            return;
+        }
+
+        $conf->set($key, trim((string) $value));
     }
 }

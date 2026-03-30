@@ -51,18 +51,7 @@ final readonly class KafkaConsumerFactory
         $conf->set('enable.auto.commit', 'false');
 
         foreach ($this->kafkaConfig->consumerOptions($consumerGroupKey) as $key => $value) {
-            if (! is_scalar($value) && $value !== null) {
-                throw new \InvalidArgumentException(sprintf(
-                    'Kafka consumer option "%s" must be scalar or null.',
-                    $key,
-                ));
-            }
-
-            if ($value === null) {
-                continue;
-            }
-
-            $conf->set($key, trim((string) $value));
+            $this->applyOptionalScalarSetting($conf, $key, $value);
         }
 
         return $conf;
@@ -70,32 +59,16 @@ final readonly class KafkaConsumerFactory
 
     private function resolveGroupId(string $consumerGroupKey, ?string $groupIdOverride): string
     {
-        if ($groupIdOverride !== null) {
-            $normalized = trim($groupIdOverride);
-
-            if ($normalized === '') {
-                throw new \InvalidArgumentException('Kafka consumer group override must be non-empty.');
-            }
-
-            return $normalized;
-        }
-
-        return $this->kafkaConfig->consumerGroup($consumerGroupKey);
+        return $groupIdOverride !== null
+            ? $this->requireNonEmptyOverride($groupIdOverride, 'Kafka consumer group override must be non-empty.')
+            : $this->kafkaConfig->consumerGroup($consumerGroupKey);
     }
 
     private function resolveTopic(string $topicKey, ?string $topicOverride): string
     {
-        if ($topicOverride !== null) {
-            $normalized = trim($topicOverride);
-
-            if ($normalized === '') {
-                throw new \InvalidArgumentException('Kafka consumer topic override must be non-empty.');
-            }
-
-            return $normalized;
-        }
-
-        return $this->kafkaConfig->topic($topicKey);
+        return $topicOverride !== null
+            ? $this->requireNonEmptyOverride($topicOverride, 'Kafka consumer topic override must be non-empty.')
+            : $this->kafkaConfig->topic($topicKey);
     }
 
     private function resolvePollTimeoutMs(?int $pollTimeoutMsOverride): int
@@ -109,5 +82,32 @@ final readonly class KafkaConsumerFactory
         }
 
         return $this->kafkaConfig->operationTimeoutMs();
+    }
+
+    private function applyOptionalScalarSetting(Conf $conf, string $key, mixed $value): void
+    {
+        if (! is_scalar($value) && $value !== null) {
+            throw new \InvalidArgumentException(sprintf(
+                'Kafka consumer option "%s" must be scalar or null.',
+                $key,
+            ));
+        }
+
+        if ($value === null) {
+            return;
+        }
+
+        $conf->set($key, trim((string) $value));
+    }
+
+    private function requireNonEmptyOverride(string $value, string $message): string
+    {
+        $normalized = trim($value);
+
+        if ($normalized === '') {
+            throw new \InvalidArgumentException($message);
+        }
+
+        return $normalized;
     }
 }

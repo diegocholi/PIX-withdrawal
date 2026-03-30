@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace Tecnofit\PixWithdrawal\Providers\Factories;
 
 use Tecnofit\PixWithdrawal\Core\Shared\Contract\UuidGenerator;
+use Tecnofit\PixWithdrawal\Plugins\Identifier\FakeUuidGenerator;
+use Tecnofit\PixWithdrawal\Plugins\Identifier\RandomUuidGenerator;
 use Tecnofit\PixWithdrawal\Providers\Config\ProviderConfigProvider;
 
 final readonly class UuidGeneratorFactory
 {
-    public function __construct(
-        private ProviderConfigProvider $providerConfigProvider,
-        private RandomUuidGeneratorFactory $randomUuidGeneratorFactory,
-        private FakeUuidGeneratorFactory $fakeUuidGeneratorFactory,
-    ) {
+    public function __construct(private ProviderConfigProvider $providerConfigProvider)
+    {
     }
 
     public function create(): UuidGenerator
@@ -21,8 +20,8 @@ final readonly class UuidGeneratorFactory
         $driver = $this->providerConfigProvider->uuidDriver();
 
         return match ($driver) {
-            'random' => $this->randomUuidGeneratorFactory->create(),
-            'fake' => $this->fakeUuidGeneratorFactory->create(),
+            'random' => new RandomUuidGenerator(),
+            'fake' => new FakeUuidGenerator(),
             default => throw new \InvalidArgumentException(sprintf(
                 'Unsupported providers.identifiers.uuid_driver "%s".',
                 $driver

@@ -24,6 +24,7 @@ use Tecnofit\PixWithdrawal\Core\Shared\Contract\WithdrawIdempotencyKeyGenerator;
 use Tecnofit\PixWithdrawal\Core\Shared\FailureCategoryClassifier;
 use Tecnofit\PixWithdrawal\Plugins\Account\DomainAtomicAccountDebit;
 use Tecnofit\PixWithdrawal\Plugins\Identifier\DeterministicWithdrawDuplicateGuardFingerprintGenerator;
+use Tecnofit\PixWithdrawal\Plugins\Identifier\RandomUuidGenerator;
 use Tecnofit\PixWithdrawal\Plugins\Observability\NullObservability;
 use Tecnofit\PixWithdrawal\Plugins\Identifier\RandomWithdrawIdempotencyKeyGenerator;
 use Tecnofit\PixWithdrawal\Providers\Config\KafkaConfig;
@@ -34,7 +35,6 @@ use Tecnofit\PixWithdrawal\Providers\Factories\ClockFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\DateTimeZoneFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\DomainEventDispatcherFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\EventPayloadSerializerFactory;
-use Tecnofit\PixWithdrawal\Providers\Factories\FakeUuidGeneratorFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\HyperfStructuredLoggerFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\KafkaConfigFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\KafkaConsumerFactory;
@@ -48,12 +48,9 @@ use Tecnofit\PixWithdrawal\Providers\Factories\ProviderConfigProviderFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\ProviderLogContextEnricherFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\ProviderMetricEmitterFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\ProviderPayloadNormalizerFactory;
-use Tecnofit\PixWithdrawal\Providers\Factories\RandomUuidGeneratorFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\SensitiveDataMaskerFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\SmtpConfigFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\StructuredLoggerFactory;
-use Tecnofit\PixWithdrawal\Providers\Factories\SystemClockFactory;
-use Tecnofit\PixWithdrawal\Providers\Factories\TestClockFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\SmtpWithdrawMailerFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\UuidGeneratorFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\WithdrawNotificationDispatcherFactory;
@@ -76,11 +73,42 @@ final class ProviderBindingRegistry
     public static function definitions(): array
     {
         return [
+            ...self::coreBindings(),
+            ...self::providerBindings(),
+            ...self::factoryBindings(),
+        ];
+    }
+
+    /**
+     * @return array<class-string|string, class-string|\Closure>
+     */
+    private static function coreBindings(): array
+    {
+        return [
             \DateTimeZone::class => static fn ($container) => $container->get(DateTimeZoneFactory::class)->create(),
             AtomicAccountDebit::class => DomainAtomicAccountDebit::class,
             Clock::class => static fn ($container) => $container->get(ClockFactory::class)->create(),
             ClockInterface::class => static fn ($container) => $container->get(Clock::class),
-            CorrelationIdGenerator::class => static fn ($container) => $container->get(RandomUuidGeneratorFactory::class)->create(),
+            CorrelationIdGenerator::class => static fn () => new RandomUuidGenerator(),
+            FailureClassifier::class => FailureCategoryClassifier::class,
+            SensitiveDataMasker::class => static fn ($container) => $container->get(SensitiveDataMaskerFactory::class)->create(),
+            LogPayloadSerializer::class => static fn ($container) => $container->get(LogPayloadSerializerFactory::class)->create(),
+            EventPayloadSerializer::class => static fn ($container) => $container->get(EventPayloadSerializerFactory::class)->create(),
+            UuidGenerator::class => static fn ($container) => $container->get(UuidGeneratorFactory::class)->create(),
+            WithdrawDuplicateGuardFingerprintGenerator::class => static fn () => new DeterministicWithdrawDuplicateGuardFingerprintGenerator(),
+            WithdrawDuplicateGuardWindow::class => static fn ($container) => new ConfiguredWithdrawDuplicateGuardWindow(
+                $container->get(ProviderConfigProvider::class)->withdrawDuplicateGuardWindowSeconds(),
+            ),
+            WithdrawIdempotencyKeyGenerator::class => static fn () => new RandomWithdrawIdempotencyKeyGenerator(),
+        ];
+    }
+
+    /**
+     * @return array<class-string|string, class-string|\Closure>
+     */
+    private static function providerBindings(): array
+    {
+        return [
             KafkaConfig::class => static fn ($container) => $container->get(KafkaConfigFactory::class)->create(),
             KafkaMessageProducer::class => static fn ($container) => $container->get(KafkaProducerFactory::class)->create(),
             MailConfig::class => static fn ($container) => $container->get(SmtpConfigFactory::class)->create(),
@@ -90,26 +118,23 @@ final class ProviderBindingRegistry
             ProviderConfigProvider::class => static fn ($container) => $container->get(ProviderConfigProviderFactory::class)->create(),
             ProviderPayloadNormalizer::class => static fn ($container) => $container->get(ProviderPayloadNormalizerFactory::class)->create(),
             DomainEventDispatcher::class => static fn ($container) => $container->get(DomainEventDispatcherFactory::class)->create(),
-            EventPayloadSerializer::class => static fn ($container) => $container->get(EventPayloadSerializerFactory::class)->create(),
-            FailureClassifier::class => FailureCategoryClassifier::class,
-            LogPayloadSerializer::class => static fn ($container) => $container->get(LogPayloadSerializerFactory::class)->create(),
             MetricEmitter::class => static fn ($container) => $container->get(MetricEmitterFactory::class)->create(),
             HyperfStructuredLogger::class => static fn ($container) => $container->get(HyperfStructuredLoggerFactory::class)->create(),
             ProviderLogContextEnricher::class => static fn ($container) => $container->get(ProviderLogContextEnricherFactory::class)->create(),
             ProviderMetricEmitter::class => static fn ($container) => $container->get(ProviderMetricEmitterFactory::class)->create(),
             NullMetricEmitter::class => static fn ($container) => $container->get(NullMetricEmitterFactory::class)->create(),
-            SensitiveDataMasker::class => static fn ($container) => $container->get(SensitiveDataMaskerFactory::class)->create(),
             StructuredLogger::class => static fn ($container) => $container->get(StructuredLoggerFactory::class)->create(),
-            UuidGenerator::class => static fn ($container) => $container->get(UuidGeneratorFactory::class)->create(),
-            WithdrawDuplicateGuardFingerprintGenerator::class => static fn () => new DeterministicWithdrawDuplicateGuardFingerprintGenerator(),
-            WithdrawDuplicateGuardWindow::class => static fn ($container) => new ConfiguredWithdrawDuplicateGuardWindow(
-                $container->get(ProviderConfigProvider::class)->withdrawDuplicateGuardWindowSeconds(),
-            ),
-            WithdrawIdempotencyKeyGenerator::class => static fn () => new RandomWithdrawIdempotencyKeyGenerator(),
             NullObservability::class => static fn ($container) => $container->get(NullObservabilityFactory::class)->create(),
             Observability::class => static fn ($container) => $container->get(ObservabilityFactory::class)->create(),
-            TestClockFactory::class => TestClockFactory::class,
-            SystemClockFactory::class => SystemClockFactory::class,
+        ];
+    }
+
+    /**
+     * @return array<class-string|string, class-string|\Closure>
+     */
+    private static function factoryBindings(): array
+    {
+        return [
             DateTimeZoneFactory::class => DateTimeZoneFactory::class,
             ProviderConfigProviderFactory::class => ProviderConfigProviderFactory::class,
             SensitiveDataMaskerFactory::class => SensitiveDataMaskerFactory::class,
@@ -127,8 +152,6 @@ final class ProviderBindingRegistry
             SmtpWithdrawMailerFactory::class => SmtpWithdrawMailerFactory::class,
             WithdrawNotificationDispatcherFactory::class => WithdrawNotificationDispatcherFactory::class,
             WithdrawNotificationKafkaHandlerFactory::class => WithdrawNotificationKafkaHandlerFactory::class,
-            RandomUuidGeneratorFactory::class => RandomUuidGeneratorFactory::class,
-            FakeUuidGeneratorFactory::class => FakeUuidGeneratorFactory::class,
             UuidGeneratorFactory::class => UuidGeneratorFactory::class,
             DomainEventDispatcherFactory::class => DomainEventDispatcherFactory::class,
         ];
