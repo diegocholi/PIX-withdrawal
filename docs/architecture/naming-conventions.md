@@ -233,7 +233,7 @@ Queries:
 
 Seeds:
 
-- seeds executáveis usam sufixo `Seeder`, como `DevelopmentAccountSeeder`
+- seeds executáveis usam sufixo `Seeder`, como `PixWithdrawalCaseSeeder`
 - seeds canônicas do case devem refletir o cenário no nome, como `PixWithdrawalCaseSeeder`
 - rastreadores de execução única para bootstrap podem usar sufixo `Tracker`, como `SeedExecutionTracker`
 - arquivos de apoio de massa podem manter nomes orientados ao cenário

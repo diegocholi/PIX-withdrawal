@@ -28,7 +28,7 @@ final class CliNamingConventionTest extends TestCase
         self::assertStringContainsString('`system:check:all`', $documentContents);
         self::assertStringContainsString('`withdraw:scheduler:run`', $documentContents);
         self::assertStringContainsString('`withdraw:worker:process`', $documentContents);
-        self::assertStringContainsString('evitar assinaturas vagas como `run`, `worker`, `process` ou `check` sem contexto do dominio', $documentContents);
+        self::assertStringContainsString('evitar assinaturas vagas como `run`, `worker`, `process` ou `check` sem contexto do domínio', $documentContents);
     }
 
     public function testCurrentCliCommandClassKeepsDocumentedNamingPattern(): void

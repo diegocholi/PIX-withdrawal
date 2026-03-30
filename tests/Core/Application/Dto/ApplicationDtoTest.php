@@ -8,11 +8,9 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Tecnofit\PixWithdrawal\Core\Application\Command\CreateWithdrawInput;
 use Tecnofit\PixWithdrawal\Core\Application\Command\ProcessWithdrawInput;
-use Tecnofit\PixWithdrawal\Core\Application\Command\PublishDomainEventInput;
 use Tecnofit\PixWithdrawal\Core\Application\Dto\CreateWithdrawData;
 use Tecnofit\PixWithdrawal\Core\Application\Dto\FindWithdrawStatusData;
 use Tecnofit\PixWithdrawal\Core\Application\Dto\ProcessWithdrawData;
-use Tecnofit\PixWithdrawal\Core\Application\Dto\PublishDomainEventData;
 use Tecnofit\PixWithdrawal\Core\Application\Query\FindWithdrawStatusInput;
 use Tecnofit\PixWithdrawal\Core\Shared\Contract\SerializableDto;
 
@@ -55,22 +53,6 @@ final class ApplicationDtoTest extends TestCase
         );
     }
 
-    public function testPublishDomainEventInputIsReadonlyAndSerializable(): void
-    {
-        $input = new PublishDomainEventInput('withdraw.created', ['withdraw_id' => 'wd-1'], 'corr-3', ['trace_id' => 'trace-3']);
-
-        self::assertTrue((new ReflectionClass($input))->isReadOnly());
-        self::assertSame(
-            [
-                'event_name' => 'withdraw.created',
-                'payload' => ['withdraw_id' => 'wd-1'],
-                'correlation_id' => 'corr-3',
-                'trace_metadata' => ['trace_id' => 'trace-3'],
-            ],
-            $input->toArray()
-        );
-    }
-
     public function testFindWithdrawStatusInputIsReadonlyAndSerializable(): void
     {
         $input = new FindWithdrawStatusInput('acc-2', 'wd-2', 'corr-4', ['trace_id' => 'trace-4']);
@@ -92,12 +74,10 @@ final class ApplicationDtoTest extends TestCase
         $create = new CreateWithdrawData('wd-1', 'corr-1', 'QUEUED', ['trace_id' => 'trace-1']);
         $process = new ProcessWithdrawData('wd-1', 'corr-2', 'DONE', ['trace_id' => 'trace-2']);
         $status = new FindWithdrawStatusData('wd-1', 'PROCESSING', '100.00', 'PIX', false, null, null, null, 'EMAIL', 'u***@example.com', 'corr-3', ['trace_id' => 'trace-3']);
-        $event = new PublishDomainEventData('withdraw.done', 'corr-4', true, ['trace_id' => 'trace-4']);
 
         self::assertTrue((new ReflectionClass($create))->isReadOnly());
         self::assertTrue((new ReflectionClass($process))->isReadOnly());
         self::assertTrue((new ReflectionClass($status))->isReadOnly());
-        self::assertTrue((new ReflectionClass($event))->isReadOnly());
 
         self::assertSame(
             [
@@ -133,15 +113,6 @@ final class ApplicationDtoTest extends TestCase
                 'trace_metadata' => ['trace_id' => 'trace-3'],
             ],
             $status->toArray()
-        );
-        self::assertSame(
-            [
-                'event_name' => 'withdraw.done',
-                'correlation_id' => 'corr-4',
-                'published' => true,
-                'trace_metadata' => ['trace_id' => 'trace-4'],
-            ],
-            $event->toArray()
         );
     }
 }

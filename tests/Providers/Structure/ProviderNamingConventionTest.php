@@ -21,7 +21,7 @@ final class ProviderNamingConventionTest extends TestCase
         self::assertStringContainsString('`KafkaProducerFactory`', $documentContents);
         self::assertStringContainsString('`SmtpWithdrawMailer`', $documentContents);
         self::assertStringContainsString('`HyperfStructuredLogger`', $documentContents);
-        self::assertStringContainsString('nao criar logger exclusivo por provider', $documentContents);
+        self::assertStringContainsString('não criar logger exclusivo por provider', $documentContents);
     }
 
     public function testProviderModuleContainsDocumentedNamespaceDirectories(): void

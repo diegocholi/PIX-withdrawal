@@ -8,6 +8,7 @@ use Hyperf\Contract\ApplicationInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 use Tecnofit\PixWithdrawal\Plugins\Hyperf\Bootstrap\HyperfContainerFactory;
+use Tecnofit\PixWithdrawal\Providers\Config\KafkaConfig;
 
 final class SystemCheckKafkaCommandTest extends TestCase
 {
@@ -39,7 +40,7 @@ final class SystemCheckKafkaCommandTest extends TestCase
         self::assertSame('system:check:kafka', $payload['command']);
         self::assertSame('kafka', $payload['check']);
         self::assertSame('ok', $payload['status']);
-        self::assertSame('pix-withdrawal-local', $payload['client_id']);
+        self::assertSame($container->get(KafkaConfig::class)->clientId(), $payload['client_id']);
         self::assertSame(1, $payload['configured_brokers_count']);
         self::assertGreaterThanOrEqual(1, $payload['discovered_brokers_count']);
         self::assertGreaterThanOrEqual(1, $payload['discovered_topics_count']);

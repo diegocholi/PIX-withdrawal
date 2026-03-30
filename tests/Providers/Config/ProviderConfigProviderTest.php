@@ -41,7 +41,7 @@ final class ProviderConfigProviderTest extends TestCase
             ['providers.identifiers.withdraw_duplicate_guard_window_seconds', 60, 90],
             ['providers.observability.driver', 'hyperf', 'hyperf'],
             ['providers.metrics.driver', 'logger', 'logger'],
-            ['providers.domain_events.driver', 'framework', 'kafka'],
+            ['providers.domain_events.driver', 'kafka', 'kafka'],
             ['kafka', [], ['brokers' => ['kafka:19092']]],
             ['mail', [], ['default' => 'smtp']],
         ]);
@@ -82,7 +82,7 @@ final class ProviderConfigProviderTest extends TestCase
         self::assertSame(60, $providerConfig->withdrawDuplicateGuardWindowSeconds());
         self::assertSame('hyperf', $providerConfig->observabilityDriver());
         self::assertSame('logger', $providerConfig->metricDriver());
-        self::assertSame('framework', $providerConfig->domainEventDriver());
+        self::assertSame('kafka', $providerConfig->domainEventDriver());
         self::assertSame([], $providerConfig->kafka());
         self::assertSame([], $providerConfig->mail());
     }

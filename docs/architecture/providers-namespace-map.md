@@ -74,4 +74,4 @@ integrações concretas previsível desde o bootstrap até os adaptadores extern
 `Support`
 
 - utilitários internos restritos ao módulo `Providers`
-- adapters de contratos do core para serviços técnicos do framework, como `HyperfDomainEventDispatcher`
+- adapters de contratos do core para serviços técnicos e integrações concretas, como `KafkaDomainEventDispatcher`

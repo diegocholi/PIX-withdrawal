@@ -51,7 +51,7 @@ final readonly class ProviderConfigProvider
 
     public function domainEventDriver(): string
     {
-        return (string) $this->config->get('providers.domain_events.driver', 'framework');
+        return (string) $this->config->get('providers.domain_events.driver', 'kafka');
     }
 
     public function clockDriver(): string

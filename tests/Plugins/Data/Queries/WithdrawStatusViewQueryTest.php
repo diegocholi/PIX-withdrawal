@@ -64,8 +64,8 @@ final class WithdrawStatusViewQueryTest extends DataSchemaMigrationIntegrationTe
         self::assertSame('45.25', $result->amount());
         self::assertSame('PIX', $result->method());
         self::assertTrue($result->scheduled());
-        self::assertSame('2026-03-30T08:30:00-03:00', $result->scheduledFor());
-        self::assertSame('2026-03-30T08:32:00-03:00', $result->processedAt());
+        self::assertSame('2026-03-30T08:30:00+00:00', $result->scheduledFor());
+        self::assertSame('2026-03-30T08:32:00+00:00', $result->processedAt());
         self::assertSame('insufficient_balance', $result->errorReason());
         self::assertSame('EMAIL', $result->pixKeyType());
         self::assertSame('status@example.com', $result->pixKeyValue());

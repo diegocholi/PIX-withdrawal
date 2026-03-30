@@ -23,12 +23,14 @@ use Tecnofit\PixWithdrawal\Core\Shared\Contract\WithdrawDuplicateGuardWindow;
 use Tecnofit\PixWithdrawal\Core\Shared\Contract\WithdrawIdempotencyKeyGenerator;
 use Tecnofit\PixWithdrawal\Core\Shared\FailureCategoryClassifier;
 use Tecnofit\PixWithdrawal\Plugins\Account\DomainAtomicAccountDebit;
+use Tecnofit\PixWithdrawal\Plugins\Identifier\DeterministicWithdrawDuplicateGuardFingerprintGenerator;
 use Tecnofit\PixWithdrawal\Plugins\Observability\NullObservability;
+use Tecnofit\PixWithdrawal\Plugins\Identifier\RandomWithdrawIdempotencyKeyGenerator;
 use Tecnofit\PixWithdrawal\Providers\Config\KafkaConfig;
 use Tecnofit\PixWithdrawal\Providers\Config\MailConfig;
+use Tecnofit\PixWithdrawal\Providers\Config\ConfiguredWithdrawDuplicateGuardWindow;
 use Tecnofit\PixWithdrawal\Providers\Config\ProviderConfigProvider;
 use Tecnofit\PixWithdrawal\Providers\Factories\ClockFactory;
-use Tecnofit\PixWithdrawal\Providers\Factories\CorrelationIdGeneratorFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\DateTimeZoneFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\DomainEventDispatcherFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\EventPayloadSerializerFactory;
@@ -56,9 +58,6 @@ use Tecnofit\PixWithdrawal\Providers\Factories\SmtpWithdrawMailerFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\UuidGeneratorFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\WithdrawNotificationDispatcherFactory;
 use Tecnofit\PixWithdrawal\Providers\Factories\WithdrawNotificationKafkaHandlerFactory;
-use Tecnofit\PixWithdrawal\Providers\Factories\WithdrawDuplicateGuardFingerprintGeneratorFactory;
-use Tecnofit\PixWithdrawal\Providers\Factories\WithdrawDuplicateGuardWindowFactory;
-use Tecnofit\PixWithdrawal\Providers\Factories\WithdrawIdempotencyKeyGeneratorFactory;
 use Tecnofit\PixWithdrawal\Providers\Logging\HyperfStructuredLogger;
 use Tecnofit\PixWithdrawal\Providers\Kafka\KafkaMessageProducer;
 use Tecnofit\PixWithdrawal\Providers\Logging\ProviderLogContextEnricher;
@@ -81,7 +80,7 @@ final class ProviderBindingRegistry
             AtomicAccountDebit::class => DomainAtomicAccountDebit::class,
             Clock::class => static fn ($container) => $container->get(ClockFactory::class)->create(),
             ClockInterface::class => static fn ($container) => $container->get(Clock::class),
-            CorrelationIdGenerator::class => static fn ($container) => $container->get(CorrelationIdGeneratorFactory::class)->create(),
+            CorrelationIdGenerator::class => static fn ($container) => $container->get(RandomUuidGeneratorFactory::class)->create(),
             KafkaConfig::class => static fn ($container) => $container->get(KafkaConfigFactory::class)->create(),
             KafkaMessageProducer::class => static fn ($container) => $container->get(KafkaProducerFactory::class)->create(),
             MailConfig::class => static fn ($container) => $container->get(SmtpConfigFactory::class)->create(),
@@ -102,9 +101,11 @@ final class ProviderBindingRegistry
             SensitiveDataMasker::class => static fn ($container) => $container->get(SensitiveDataMaskerFactory::class)->create(),
             StructuredLogger::class => static fn ($container) => $container->get(StructuredLoggerFactory::class)->create(),
             UuidGenerator::class => static fn ($container) => $container->get(UuidGeneratorFactory::class)->create(),
-            WithdrawDuplicateGuardFingerprintGenerator::class => static fn ($container) => $container->get(WithdrawDuplicateGuardFingerprintGeneratorFactory::class)->create(),
-            WithdrawDuplicateGuardWindow::class => static fn ($container) => $container->get(WithdrawDuplicateGuardWindowFactory::class)->create(),
-            WithdrawIdempotencyKeyGenerator::class => static fn ($container) => $container->get(WithdrawIdempotencyKeyGeneratorFactory::class)->create(),
+            WithdrawDuplicateGuardFingerprintGenerator::class => static fn () => new DeterministicWithdrawDuplicateGuardFingerprintGenerator(),
+            WithdrawDuplicateGuardWindow::class => static fn ($container) => new ConfiguredWithdrawDuplicateGuardWindow(
+                $container->get(ProviderConfigProvider::class)->withdrawDuplicateGuardWindowSeconds(),
+            ),
+            WithdrawIdempotencyKeyGenerator::class => static fn () => new RandomWithdrawIdempotencyKeyGenerator(),
             NullObservability::class => static fn ($container) => $container->get(NullObservabilityFactory::class)->create(),
             Observability::class => static fn ($container) => $container->get(ObservabilityFactory::class)->create(),
             TestClockFactory::class => TestClockFactory::class,
@@ -129,10 +130,6 @@ final class ProviderBindingRegistry
             RandomUuidGeneratorFactory::class => RandomUuidGeneratorFactory::class,
             FakeUuidGeneratorFactory::class => FakeUuidGeneratorFactory::class,
             UuidGeneratorFactory::class => UuidGeneratorFactory::class,
-            CorrelationIdGeneratorFactory::class => CorrelationIdGeneratorFactory::class,
-            WithdrawDuplicateGuardFingerprintGeneratorFactory::class => WithdrawDuplicateGuardFingerprintGeneratorFactory::class,
-            WithdrawDuplicateGuardWindowFactory::class => WithdrawDuplicateGuardWindowFactory::class,
-            WithdrawIdempotencyKeyGeneratorFactory::class => WithdrawIdempotencyKeyGeneratorFactory::class,
             DomainEventDispatcherFactory::class => DomainEventDispatcherFactory::class,
         ];
     }
