@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 use Tecnofit\PixWithdrawal\Adapters\Http\Controller\WithdrawStatusController;
 use Tecnofit\PixWithdrawal\Adapters\Http\Mapper\FindWithdrawStatusRequestMapper;
 use Tecnofit\PixWithdrawal\Adapters\Http\Mapper\FindWithdrawStatusResponseMapper;
-use Tecnofit\PixWithdrawal\Adapters\Http\Middleware\CorrelationIdMiddleware;
+use Tecnofit\PixWithdrawal\Adapters\Http\Request\HttpRequestContextResolver;
 use Tecnofit\PixWithdrawal\Adapters\Http\Request\RouteParameterRequest;
 use Tecnofit\PixWithdrawal\Adapters\Http\Response\ApiHeader;
 use Tecnofit\PixWithdrawal\Adapters\Http\Response\SuccessResponseFactory;
@@ -52,6 +52,7 @@ final class WithdrawStatusControllerTest extends TestCase
             request: $request,
             successResponseFactory: new SuccessResponseFactory($this->jsonResponseStub()),
             findWithdrawStatus: $useCase,
+            requestContextResolver: new HttpRequestContextResolver($request),
             routeParameterRequest: new RouteParameterRequest(),
             requestMapper: new FindWithdrawStatusRequestMapper(),
             responseMapper: new FindWithdrawStatusResponseMapper(),
@@ -132,6 +133,7 @@ final class WithdrawStatusControllerTest extends TestCase
             request: $request,
             successResponseFactory: new SuccessResponseFactory($this->jsonResponseStub()),
             findWithdrawStatus: $useCase,
+            requestContextResolver: new HttpRequestContextResolver($request),
             routeParameterRequest: new RouteParameterRequest(),
             requestMapper: new FindWithdrawStatusRequestMapper(),
             responseMapper: new FindWithdrawStatusResponseMapper(),
@@ -173,6 +175,7 @@ final class WithdrawStatusControllerTest extends TestCase
                     correlationId: 'corr-read-123',
                 ),
             ),
+            requestContextResolver: new HttpRequestContextResolver($request),
             routeParameterRequest: new RouteParameterRequest(),
             requestMapper: new FindWithdrawStatusRequestMapper(),
             responseMapper: new FindWithdrawStatusResponseMapper(),

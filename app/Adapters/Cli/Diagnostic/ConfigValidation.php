@@ -42,8 +42,6 @@ final readonly class ConfigValidation
             'environment' => $this->providerConfigProvider->providerEnvironment(),
             'clock_driver' => $this->providerConfigProvider->clockDriver(),
             'uuid_driver' => $this->providerConfigProvider->uuidDriver(),
-            'correlation_id_driver' => $this->providerConfigProvider->correlationIdDriver(),
-            'withdraw_idempotency_key_driver' => $this->providerConfigProvider->withdrawIdempotencyKeyDriver(),
             'withdraw_duplicate_guard_window_seconds' => $this->providerConfigProvider->withdrawDuplicateGuardWindowSeconds(),
             'observability_driver' => $this->providerConfigProvider->observabilityDriver(),
             'metric_driver' => $this->providerConfigProvider->metricDriver(),

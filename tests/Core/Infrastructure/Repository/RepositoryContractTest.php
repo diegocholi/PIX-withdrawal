@@ -37,6 +37,8 @@ final class RepositoryContractTest extends TestCase
         self::assertSame(
             [
                 'findById' => '?Tecnofit\\PixWithdrawal\\Core\\Domain\\Entity\\AccountWithdraw',
+                'findByIdempotencyKey' => '?Tecnofit\\PixWithdrawal\\Core\\Domain\\Entity\\AccountWithdraw',
+                'findMostRecentEquivalentSince' => '?Tecnofit\\PixWithdrawal\\Core\\Domain\\Entity\\AccountWithdraw',
                 'lockById' => '?Tecnofit\\PixWithdrawal\\Core\\Domain\\Entity\\AccountWithdraw',
                 'save' => 'void',
             ],

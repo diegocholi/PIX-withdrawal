@@ -80,7 +80,8 @@ final class ProviderBootstrapValidConfigurationTest extends TestCase
         self::assertSame('local', $config->get('providers.runtime.environment'));
         self::assertContains(DomainEventDispatcher::class, $providerConfig->requiredBindingsFor('worker'));
         self::assertContains(SmtpWithdrawMailer::class, $providerConfig->requiredBindingsFor('worker'));
-        self::assertContains(SmtpWithdrawMailer::class, $providerConfig->requiredBindingsFor('scheduler'));
+        self::assertContains(DomainEventDispatcher::class, $providerConfig->requiredBindingsFor('scheduler'));
+        self::assertNotContains(SmtpWithdrawMailer::class, $providerConfig->requiredBindingsFor('scheduler'));
     }
 
     private function clearEnvironmentOverrides(): void

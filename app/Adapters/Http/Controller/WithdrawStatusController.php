@@ -8,9 +8,8 @@ use Hyperf\HttpServer\Contract\RequestInterface;
 use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 use Tecnofit\PixWithdrawal\Adapters\Http\Mapper\FindWithdrawStatusRequestMapper;
 use Tecnofit\PixWithdrawal\Adapters\Http\Mapper\FindWithdrawStatusResponseMapper;
-use Tecnofit\PixWithdrawal\Adapters\Http\Middleware\CorrelationIdMiddleware;
+use Tecnofit\PixWithdrawal\Adapters\Http\Request\HttpRequestContextResolver;
 use Tecnofit\PixWithdrawal\Adapters\Http\Request\RouteParameterRequest;
-use Tecnofit\PixWithdrawal\Adapters\Http\Response\ApiHeader;
 use Tecnofit\PixWithdrawal\Adapters\Http\Response\SuccessResponseFactory;
 use Tecnofit\PixWithdrawal\Core\Application\UseCase\FindWithdrawStatus;
 
@@ -20,6 +19,7 @@ final readonly class WithdrawStatusController
         private RequestInterface $request,
         private SuccessResponseFactory $successResponseFactory,
         private FindWithdrawStatus $findWithdrawStatus,
+        private HttpRequestContextResolver $requestContextResolver,
         private RouteParameterRequest $routeParameterRequest,
         private FindWithdrawStatusRequestMapper $requestMapper,
         private FindWithdrawStatusResponseMapper $responseMapper,
@@ -31,14 +31,14 @@ final readonly class WithdrawStatusController
         $normalizedAccountId = $this->routeParameterRequest->requireUuid('accountId', $accountId);
         $normalizedWithdrawId = $this->routeParameterRequest->requireUuid('withdrawId', $withdrawId);
 
-        $correlationId = $this->resolveCorrelationId();
+        $correlationId = $this->requestContextResolver->correlationId() ?? '';
         $query = $this->requestMapper->map(
             accountId: $normalizedAccountId,
             withdrawId: $normalizedWithdrawId,
             correlationId: $correlationId,
             traceMetadata: [
                 'http_method' => $this->request->getMethod(),
-                'route' => $this->resolveRoutePath(),
+                'route' => $this->requestContextResolver->routePath(),
                 'account_id' => $normalizedAccountId,
             ],
         );
@@ -49,32 +49,5 @@ final readonly class WithdrawStatusController
         )->toArray();
 
         return $this->successResponseFactory->create($payload);
-    }
-
-    private function resolveCorrelationId(): string
-    {
-        $attribute = $this->request->getAttribute(CorrelationIdMiddleware::ATTRIBUTE);
-
-        if (is_string($attribute) && trim($attribute) !== '') {
-            return trim($attribute);
-        }
-
-        $header = $this->request->header(ApiHeader::CORRELATION_ID);
-
-        return is_string($header) ? trim($header) : '';
-    }
-
-    private function resolveRoutePath(): string
-    {
-        $path = trim($this->request->getPathInfo());
-
-        if ($path !== '') {
-            return $path;
-        }
-
-        $uri = $this->request->getUri();
-        $path = trim($uri->getPath());
-
-        return $path === '' ? '/' : $path;
     }
 }

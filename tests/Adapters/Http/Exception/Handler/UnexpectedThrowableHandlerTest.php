@@ -10,6 +10,7 @@ use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Tecnofit\PixWithdrawal\Adapters\Http\Exception\PublicErrorSanitizer;
+use Tecnofit\PixWithdrawal\Adapters\Http\Request\HttpRequestContextResolver;
 use Tecnofit\PixWithdrawal\Adapters\Http\Response\ErrorResponseFactory;
 use Tecnofit\PixWithdrawal\Core\Application\Exception\AccountNotFound;
 use Tecnofit\PixWithdrawal\Core\Application\Exception\DuplicateWithdrawRequestBlocked;
@@ -246,12 +247,14 @@ final class UnexpectedThrowableHandlerTest extends TestCase
     private function handlerWithCorrelationId(?string $correlationId): UnexpectedThrowableHandler
     {
         $request = $this->createConfiguredMock(RequestInterface::class, [
+            'getAttribute' => null,
             'header' => $correlationId,
         ]);
 
         return new UnexpectedThrowableHandler(
             new ErrorResponseFactory($this->jsonResponseStub()),
             $request,
+            new HttpRequestContextResolver($request),
             new FailureCategoryClassifier(),
             new PublicErrorSanitizer(),
             $this->createMock(StructuredLogger::class),

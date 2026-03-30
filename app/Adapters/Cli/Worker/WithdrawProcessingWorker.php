@@ -7,7 +7,7 @@ namespace Tecnofit\PixWithdrawal\Adapters\Cli\Worker;
 use Tecnofit\PixWithdrawal\Providers\Config\KafkaConfig;
 use Tecnofit\PixWithdrawal\Providers\Factories\KafkaConsumerFactory;
 
-class WithdrawProcessingWorker
+final readonly class WithdrawProcessingWorker
 {
     public function __construct(
         private readonly KafkaConsumerFactory $kafkaConsumerFactory,

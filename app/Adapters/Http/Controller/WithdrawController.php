@@ -9,10 +9,9 @@ use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 use Tecnofit\PixWithdrawal\Adapters\Http\Dto\Public\CreateWithdrawRequestPayload;
 use Tecnofit\PixWithdrawal\Adapters\Http\Mapper\CreateWithdrawRequestMapper;
 use Tecnofit\PixWithdrawal\Adapters\Http\Mapper\CreateWithdrawResponseMapper;
-use Tecnofit\PixWithdrawal\Adapters\Http\Middleware\CorrelationIdMiddleware;
 use Tecnofit\PixWithdrawal\Adapters\Http\Request\CreateWithdrawRequest;
+use Tecnofit\PixWithdrawal\Adapters\Http\Request\HttpRequestContextResolver;
 use Tecnofit\PixWithdrawal\Adapters\Http\Request\RouteParameterRequest;
-use Tecnofit\PixWithdrawal\Adapters\Http\Response\ApiHeader;
 use Tecnofit\PixWithdrawal\Adapters\Http\Response\WithdrawAcceptedResponse;
 use Tecnofit\PixWithdrawal\Core\Application\UseCase\CreateWithdraw;
 
@@ -22,6 +21,7 @@ final readonly class WithdrawController
         private RequestInterface $request,
         private CreateWithdraw $createWithdraw,
         private CreateWithdrawRequest $createWithdrawRequest,
+        private HttpRequestContextResolver $requestContextResolver,
         private RouteParameterRequest $routeParameterRequest,
         private CreateWithdrawRequestMapper $requestMapper,
         private CreateWithdrawResponseMapper $responseMapper,
@@ -34,7 +34,7 @@ final readonly class WithdrawController
         $normalizedAccountId = $this->routeParameterRequest->requireUuid('accountId', $accountId);
 
         $requestPayload = $this->createWithdrawRequest->validate($this->request->post());
-        $correlationId = $this->resolveCorrelationId();
+        $correlationId = $this->requestContextResolver->correlationId() ?? '';
         $scheduledFor = $this->extractScheduledFor($requestPayload);
 
         $command = $this->requestMapper->map(
@@ -43,7 +43,7 @@ final readonly class WithdrawController
             payload: $requestPayload,
             traceMetadata: [
                 'http_method' => $this->request->getMethod(),
-                'route' => $this->resolveRoutePath(),
+                'route' => $this->requestContextResolver->routePath(),
             ],
         );
 
@@ -57,19 +57,6 @@ final readonly class WithdrawController
         return $this->withdrawAcceptedResponse->create($payload);
     }
 
-    private function resolveCorrelationId(): string
-    {
-        $attribute = $this->request->getAttribute(CorrelationIdMiddleware::ATTRIBUTE);
-
-        if (is_string($attribute) && trim($attribute) !== '') {
-            return trim($attribute);
-        }
-
-        $header = $this->request->header(ApiHeader::CORRELATION_ID);
-
-        return is_string($header) ? trim($header) : '';
-    }
-
     private function extractScheduledFor(CreateWithdrawRequestPayload $payload): ?string
     {
         $schedulePayload = $payload->toArray()['schedule'];
@@ -79,19 +66,5 @@ final readonly class WithdrawController
         }
 
         return (string) ($schedulePayload['at'] ?? '');
-    }
-
-    private function resolveRoutePath(): string
-    {
-        $path = trim($this->request->getPathInfo());
-
-        if ($path !== '') {
-            return $path;
-        }
-
-        $uri = $this->request->getUri();
-        $path = trim($uri->getPath());
-
-        return $path === '' ? '/' : $path;
     }
 }

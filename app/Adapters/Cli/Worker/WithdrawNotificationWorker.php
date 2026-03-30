@@ -8,7 +8,7 @@ use Tecnofit\PixWithdrawal\Providers\Config\KafkaConfig;
 use Tecnofit\PixWithdrawal\Providers\Factories\KafkaConsumerFactory;
 use Tecnofit\PixWithdrawal\Providers\Mail\WithdrawNotificationKafkaHandler;
 
-class WithdrawNotificationWorker
+final readonly class WithdrawNotificationWorker
 {
     public function __construct(
         private readonly KafkaConsumerFactory $kafkaConsumerFactory,

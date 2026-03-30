@@ -108,7 +108,7 @@ Estados implementados em `Core/Domain/Enum/WithdrawStatus.php`:
 ## Estratégia de consistência e idempotência
 
 - o estado do saque fica explícito na tabela principal
-- a borda trabalha com `correlation_id` e `idempotency_key`
+- a borda trabalha com `correlation_id`, enquanto `idempotency_key` é gerado internamente pelo backend
 - o scheduler só publica após promover o estado para `QUEUED`
 - o worker verifica estados finais antes de repetir processamento
 - o seed usa `seed_execution` para não duplicar massa de dados

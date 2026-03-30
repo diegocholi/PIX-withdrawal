@@ -14,6 +14,7 @@ use Tecnofit\PixWithdrawal\Adapters\Http\Controller\WithdrawController;
 use Tecnofit\PixWithdrawal\Adapters\Http\Mapper\CreateWithdrawRequestMapper;
 use Tecnofit\PixWithdrawal\Adapters\Http\Mapper\CreateWithdrawResponseMapper;
 use Tecnofit\PixWithdrawal\Adapters\Http\Request\CreateWithdrawRequest;
+use Tecnofit\PixWithdrawal\Adapters\Http\Request\HttpRequestContextResolver;
 use Tecnofit\PixWithdrawal\Adapters\Http\Request\RouteParameterRequest;
 use Tecnofit\PixWithdrawal\Adapters\Http\Response\ApiHeader;
 use Tecnofit\PixWithdrawal\Adapters\Http\Response\SuccessResponseFactory;
@@ -54,6 +55,7 @@ final class WithdrawControllerTest extends TestCase
             request: $request,
             createWithdraw: $createWithdraw,
             createWithdrawRequest: new CreateWithdrawRequest(),
+            requestContextResolver: new HttpRequestContextResolver($request),
             routeParameterRequest: new RouteParameterRequest(),
             requestMapper: new CreateWithdrawRequestMapper(),
             responseMapper: new CreateWithdrawResponseMapper(),
@@ -131,6 +133,7 @@ final class WithdrawControllerTest extends TestCase
             request: $request,
             createWithdraw: $createWithdraw,
             createWithdrawRequest: new CreateWithdrawRequest(),
+            requestContextResolver: new HttpRequestContextResolver($request),
             routeParameterRequest: new RouteParameterRequest(),
             requestMapper: new CreateWithdrawRequestMapper(),
             responseMapper: new CreateWithdrawResponseMapper(),
@@ -184,6 +187,7 @@ final class WithdrawControllerTest extends TestCase
                 ),
             ),
             createWithdrawRequest: new CreateWithdrawRequest(),
+            requestContextResolver: new HttpRequestContextResolver($request),
             routeParameterRequest: new RouteParameterRequest(),
             requestMapper: new CreateWithdrawRequestMapper(),
             responseMapper: new CreateWithdrawResponseMapper(),

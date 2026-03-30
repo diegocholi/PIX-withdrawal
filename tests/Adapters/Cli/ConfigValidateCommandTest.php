@@ -61,7 +61,6 @@ final class ConfigValidateCommandTest extends TestCase
         self::assertSame(['total' => 5, 'ok' => 5, 'failed' => 0], $payload['summary']);
         self::assertSame('ok', $payload['checks']['providers']['status']);
         self::assertSame('local', $payload['checks']['providers']['environment']);
-        self::assertSame('random', $payload['checks']['providers']['withdraw_idempotency_key_driver']);
         self::assertSame(75, $payload['checks']['providers']['withdraw_duplicate_guard_window_seconds']);
         self::assertSame('ok', $payload['checks']['runtimes']['status']);
         self::assertSame(4, $payload['checks']['runtimes']['runtime_count']);

@@ -10,9 +10,8 @@ use InvalidArgumentException;
 use Swow\Psr7\Message\ResponsePlusInterface;
 use Throwable;
 use Tecnofit\PixWithdrawal\Adapters\Http\Exception\PublicErrorSanitizer;
-use Tecnofit\PixWithdrawal\Adapters\Http\Middleware\CorrelationIdMiddleware;
+use Tecnofit\PixWithdrawal\Adapters\Http\Request\HttpRequestContextResolver;
 use Tecnofit\PixWithdrawal\Adapters\Http\Response\ErrorResponseFactory;
-use Tecnofit\PixWithdrawal\Adapters\Http\Response\ApiHeader;
 use Tecnofit\PixWithdrawal\Core\Application\Exception\DuplicateWithdrawRequestBlocked;
 use Tecnofit\PixWithdrawal\Core\Application\Exception\InsufficientWithdrawBalance;
 use Tecnofit\PixWithdrawal\Core\Application\Exception\WithdrawNotProcessable;
@@ -27,6 +26,7 @@ final class UnexpectedThrowableHandler extends ExceptionHandler
     public function __construct(
         private readonly ErrorResponseFactory $errorResponseFactory,
         private readonly RequestInterface $request,
+        private readonly HttpRequestContextResolver $requestContextResolver,
         private readonly FailureClassifier $failureClassifier,
         private readonly PublicErrorSanitizer $publicErrorSanitizer,
         private readonly StructuredLogger $structuredLogger,
@@ -140,20 +140,6 @@ final class UnexpectedThrowableHandler extends ExceptionHandler
 
     private function resolveCorrelationId(): ?string
     {
-        $attribute = $this->request->getAttribute(CorrelationIdMiddleware::ATTRIBUTE);
-
-        if (is_string($attribute) && trim($attribute) !== '') {
-            return trim($attribute);
-        }
-
-        $header = $this->request->header(ApiHeader::CORRELATION_ID);
-
-        if (! is_string($header)) {
-            return null;
-        }
-
-        $correlationId = trim($header);
-
-        return $correlationId === '' ? null : $correlationId;
+        return $this->requestContextResolver->correlationId();
     }
 }

@@ -206,7 +206,6 @@ final class HyperfContainerFactoryTest extends TestCase
         self::assertSame('UTF-8', $config->get('app.charset'));
         self::assertSame($appTimezone, $config->get('app.timezone'));
         self::assertSame(60, $config->get('providers.identifiers.withdraw_duplicate_guard_window_seconds'));
-        self::assertSame('random', $config->get('providers.identifiers.withdraw_idempotency_key_driver'));
         self::assertSame(
             [
                 LogLevel::EMERGENCY,

@@ -64,19 +64,6 @@ final readonly class ProviderConfigProvider
         return (string) $this->config->get('providers.identifiers.uuid_driver', 'random');
     }
 
-    public function correlationIdDriver(): string
-    {
-        return (string) $this->config->get('providers.identifiers.correlation_id_driver', 'random');
-    }
-
-    public function withdrawIdempotencyKeyDriver(): string
-    {
-        return (string) $this->config->get(
-            'providers.identifiers.withdraw_idempotency_key_driver',
-            'random'
-        );
-    }
-
     public function withdrawDuplicateGuardWindowSeconds(): int
     {
         $value = (int) $this->config->get(

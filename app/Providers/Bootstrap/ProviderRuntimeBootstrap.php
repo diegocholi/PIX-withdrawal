@@ -33,8 +33,6 @@ final class ProviderRuntimeBootstrap
             ],
             'identifiers' => [
                 'uuid_driver' => $environment === ProviderEnvironment::TEST ? 'fake' : 'random',
-                'correlation_id_driver' => 'random',
-                'withdraw_idempotency_key_driver' => 'random',
                 'withdraw_duplicate_guard_window_seconds' => max(1, $withdrawDuplicateGuardWindowSeconds),
             ],
             'observability' => [
@@ -85,7 +83,6 @@ final class ProviderRuntimeBootstrap
                 StructuredLogger::class,
                 MetricEmitter::class,
                 DomainEventDispatcher::class,
-                SmtpWithdrawMailer::class,
             ],
         ];
     }
